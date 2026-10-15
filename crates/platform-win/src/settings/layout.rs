@@ -32,11 +32,12 @@ pub const OPTIONS_BOX: Rect = Rect::new(MARGIN, 260.0, FULL, 72.0);
 pub const RESTORE_ROW: Rect = Rect::new(MARGIN + PADDING, 268.0, FULL - 2.0 * PADDING, 28.0);
 pub const CLASSIC_TONE_ROW: Rect = Rect::new(MARGIN + PADDING, 298.0, FULL - 2.0 * PADDING, 28.0);
 pub const SYSTEM_LABEL_Y: f32 = 344.0;
-pub const SYSTEM_BOX: Rect = Rect::new(MARGIN, 366.0, FULL, 44.0);
+pub const SYSTEM_BOX: Rect = Rect::new(MARGIN, 366.0, FULL, 72.0);
 pub const AUTOSTART_ROW: Rect = Rect::new(MARGIN + PADDING, 374.0, FULL - 2.0 * PADDING, 28.0);
+pub const SHOW_ON_START_ROW: Rect = Rect::new(MARGIN + PADDING, 404.0, FULL - 2.0 * PADDING, 28.0);
 
 const FOOTER_COMPACT_Y: f32 = 238.0;
-const FOOTER_EXPANDED_Y: f32 = 428.0;
+const FOOTER_EXPANDED_Y: f32 = 456.0;
 const FOOTER_BUTTON: (f32, f32) = (130.0, 34.0);
 
 pub const STYLES: [(TypingStyle, &str); 3] = [
@@ -57,6 +58,7 @@ pub enum Control {
     ClassicTone,
     AutoRestore,
     Autostart,
+    ShowOnStart,
     About,
     Defaults,
 }
@@ -138,6 +140,7 @@ fn controls(expanded: bool) -> Vec<(Control, Rect)> {
         list.push((Control::ClassicTone, CLASSIC_TONE_ROW));
         list.push((Control::AutoRestore, RESTORE_ROW));
         list.push((Control::Autostart, AUTOSTART_ROW));
+        list.push((Control::ShowOnStart, SHOW_ON_START_ROW));
     }
     list
 }

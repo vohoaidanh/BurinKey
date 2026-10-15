@@ -237,6 +237,7 @@ pub struct State {
     pub tone: TonePlacement,
     pub auto_restore: bool,
     pub autostart: bool,
+    pub show_on_start: bool,
     pub expanded: bool,
 }
 
@@ -382,6 +383,14 @@ fn draw_advanced(p: &Painter, fonts: &Fonts, state: &State, hover: Option<Contro
         "Khởi động cùng Windows",
         state.autostart,
         hovered(Control::Autostart),
+    );
+    checkbox(
+        p,
+        fonts,
+        SHOW_ON_START_ROW,
+        "Hiện bảng điều khiển khi khởi động",
+        state.show_on_start,
+        hovered(Control::ShowOnStart),
     );
 }
 

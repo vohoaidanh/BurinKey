@@ -40,7 +40,7 @@ use windows::Win32::UI::WindowsAndMessaging::{
     WM_SIZE, WNDCLASSW, WS_EX_APPWINDOW, WS_MINIMIZEBOX, WS_POPUP, WS_SYSMENU,
 };
 
-use crate::{autostart, hook, icon, tray};
+use crate::{autostart, config, hook, icon, tray};
 use layout::{control_at, Control, HEADER, WIDTH};
 use paint::{draw, Fonts, Painter, State, BACKGROUND, WHITE};
 
@@ -239,6 +239,9 @@ fn activate(hwnd: HWND, control: Control) {
         }),
         Control::AutoRestore => hook::with_engine(|e| e.set_auto_restore(!e.auto_restore())),
         Control::Autostart => autostart::set_enabled(!autostart::is_enabled()),
+        Control::ShowOnStart => {
+            config::set_show_panel_on_start(!config::current().show_panel_on_start)
+        }
     }
     tray::refresh();
 }
@@ -252,6 +255,7 @@ fn current_state() -> State {
         tone,
         auto_restore,
         autostart: autostart::is_enabled(),
+        show_on_start: config::current().show_panel_on_start,
         expanded: expanded(),
     }
 }

@@ -5,6 +5,7 @@
 //! logic itself lives in the platform-independent `engine` crate.
 
 mod autostart;
+mod config;
 mod hook;
 mod icon;
 mod inject;
@@ -26,8 +27,8 @@ use windows::Win32::UI::WindowsAndMessaging::{
     DispatchMessageW, GetMessageW, TranslateMessage, MSG,
 };
 
-/// Installs the keyboard hook and tray icon, opens the settings panel unless
-/// `start_in_tray`, then runs the Win32 message loop until the user exits
+/// Loads the saved settings, installs the keyboard hook and tray icon, opens
+/// the settings panel (unless `start_in_tray` or turned off), then runs the Win32 message loop until the user exits
 /// (tray menu "Thoát" or `WM_DESTROY`).
 pub fn run(start_in_tray: bool) -> Result<()> {
     // Crisp rendering on high-DPI screens; must precede any window creation.
@@ -36,9 +37,10 @@ pub fn run(start_in_tray: bool) -> Result<()> {
         let _ = SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
     }
 
+    let config = config::load();
     let _hook = hook::KeyboardHook::install()?;
     let _tray = tray::TrayIcon::create()?;
-    if !start_in_tray {
+    if !start_in_tray && config.show_panel_on_start {
         settings::show()?;
     }
 

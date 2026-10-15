@@ -20,7 +20,7 @@ use windows::Win32::UI::WindowsAndMessaging::{
     WM_DESTROY, WM_LBUTTONDBLCLK, WM_LBUTTONUP, WM_RBUTTONUP, WNDCLASSW, WS_EX_LEFT, WS_OVERLAPPED,
 };
 
-use crate::{hook, icon, settings};
+use crate::{config, hook, icon, settings};
 
 const WM_TRAYICON: u32 = WM_APP + 1;
 const CLASS_NAME: PCWSTR = w!("VietImeTrayWindow");
@@ -84,9 +84,10 @@ impl Drop for TrayIcon {
     }
 }
 
-/// Updates the tooltip and the settings panel to match the current state
-/// (called after any change, including the Ctrl+Shift hotkey).
+/// Updates the tooltip and the settings panel to match the current state and
+/// saves it (called after any change, including the Ctrl+Shift hotkey).
 pub fn refresh() {
+    config::save();
     settings::refresh();
     let Some(hwnd) = TRAY_WINDOW.with(|w| w.get()) else {
         return;
