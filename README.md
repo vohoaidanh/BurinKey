@@ -40,9 +40,7 @@ cargo clippy --workspace --all-targets -- -D warnings
 
 ## Giấy phép và ghi công
 
-Phát hành theo giấy phép **GNU GPL v3 trở lên** (xem [LICENSE](LICENSE)).
+Tác giả: [vohoaidanh](https://github.com/vohoaidanh). Phát hành theo giấy phép **GNU GPL v3 trở lên** (xem [LICENSE](LICENSE)).
 
-Burin Smart Key được viết mới hoàn toàn, không phải bản sửa đổi của UniKey. Dữ liệu âm
-tiết (danh sách phụ âm, cụm nguyên âm và phụ âm cuối) lấy từ bảng dữ liệu của
-**UniKey** — © 2000-2005 Phạm Kim Long, giấy phép LGPL. Chi tiết trong [NOTICE](NOTICE).
-Dự án độc lập, không liên kết với UniKey.
+Mã nguồn viết mới hoàn toàn; chỉ bảng dữ liệu âm tiết tham khảo từ UniKey
+(© Phạm Kim Long, LGPL). Xem [NOTICE](NOTICE).
