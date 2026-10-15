@@ -20,6 +20,7 @@ pub struct Config {
     pub tone: TonePlacement,
     pub auto_restore: bool,
     pub macros_enabled: bool,
+    pub macros_in_english: bool,
     pub show_panel_on_start: bool,
 }
 
@@ -32,6 +33,7 @@ impl Default for Config {
             tone: engine.tone_placement(),
             auto_restore: engine.auto_restore(),
             macros_enabled: engine.macros_enabled(),
+            macros_in_english: engine.macros_in_english(),
             show_panel_on_start: true,
         }
     }
@@ -73,6 +75,9 @@ impl Config {
                 "macros" => {
                     config.macros_enabled = parse_bool(value).unwrap_or(config.macros_enabled)
                 }
+                "macros_in_english" => {
+                    config.macros_in_english = parse_bool(value).unwrap_or(config.macros_in_english)
+                }
                 "show_panel_on_start" => {
                     config.show_panel_on_start =
                         parse_bool(value).unwrap_or(config.show_panel_on_start)
@@ -100,10 +105,12 @@ impl Config {
              tone = \"{tone}\"  # modern (tone on o: hoa) | classic (tone on a)\n\
              auto_restore = {}\n\
              macros = {}\n\
+             macros_in_english = {}\n\
              show_panel_on_start = {}\n",
             self.mode == InputMode::Vietnamese,
             self.auto_restore,
             self.macros_enabled,
+            self.macros_in_english,
             self.show_panel_on_start,
         )
     }
@@ -148,30 +155,22 @@ pub fn load() -> Config {
         e.set_tone_placement(config.tone);
         e.set_auto_restore(config.auto_restore);
         e.set_macros_enabled(config.macros_enabled);
+        e.set_macros_in_english(config.macros_in_english);
     });
     SHOW_PANEL_ON_START.with(|c| c.set(config.show_panel_on_start));
     config
 }
 
 pub fn current() -> Config {
-    let (mode, style, tone, auto_restore, macros_enabled) = hook::with_engine(|e| {
-        let restore = e.auto_restore();
-        (
-            e.mode(),
-            e.style(),
-            e.tone_placement(),
-            restore,
-            e.macros_enabled(),
-        )
-    });
-    Config {
-        mode,
-        style,
-        tone,
-        auto_restore,
-        macros_enabled,
+    hook::with_engine(|e| Config {
+        mode: e.mode(),
+        style: e.style(),
+        tone: e.tone_placement(),
+        auto_restore: e.auto_restore(),
+        macros_enabled: e.macros_enabled(),
+        macros_in_english: e.macros_in_english(),
         show_panel_on_start: SHOW_PANEL_ON_START.with(Cell::get),
-    }
+    })
 }
 
 pub fn set_show_panel_on_start(on: bool) {
@@ -211,6 +210,7 @@ mod tests {
             tone: TonePlacement::Classic,
             auto_restore: false,
             macros_enabled: false,
+            macros_in_english: true,
             show_panel_on_start: false,
         };
         assert_eq!(Config::parse(&config.to_text()), config);

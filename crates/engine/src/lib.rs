@@ -87,6 +87,7 @@ pub struct Engine {
     auto_restore: bool,
     macros: Macros,
     macros_enabled: bool,
+    macros_in_english: bool,
 }
 
 impl Engine {
@@ -102,6 +103,7 @@ impl Engine {
             auto_restore: true,
             macros: Macros::default(),
             macros_enabled: true,
+            macros_in_english: false,
         }
     }
 
@@ -151,6 +153,16 @@ impl Engine {
         self.macros_enabled = on;
     }
 
+    pub fn macros_in_english(&self) -> bool {
+        self.macros_in_english
+    }
+
+    /// "Cho phép gõ tắt cả khi tắt tiếng Việt": in English mode, words are
+    /// still watched (typed as is, no marks) so gõ tắt can expand them.
+    pub fn set_macros_in_english(&mut self, on: bool) {
+        self.macros_in_english = on;
+    }
+
     /// Replaces the gõ tắt list.
     pub fn set_macros(&mut self, macros: Macros) {
         self.macros = macros;
@@ -164,6 +176,9 @@ impl Engine {
     /// Processes one keystroke and returns what the platform layer should do.
     pub fn process(&mut self, event: KeyEvent) -> Action {
         if self.mode == InputMode::English {
+            if self.macros_enabled && self.macros_in_english {
+                return self.process_plain(event);
+            }
             if event == KeyEvent::WordBoundary {
                 self.reset();
             }
@@ -178,6 +193,32 @@ impl Engine {
             KeyEvent::Backspace => self.handle_backspace(),
             KeyEvent::Char(ch) => self.handle_char(ch),
         }
+    }
+
+    /// English mode with gõ tắt on: keys go through untouched, only a
+    /// finished word may be swapped for its gõ tắt text.
+    fn process_plain(&mut self, event: KeyEvent) -> Action {
+        let action = match event {
+            KeyEvent::Char(ch) if self.style.is_word_break(ch) => {
+                let action = self.macro_action(ch);
+                self.reset();
+                action
+            }
+            KeyEvent::Char(ch) if !ch.is_control() => {
+                self.word.record_key(ch);
+                self.word.type_letter(ch);
+                None
+            }
+            KeyEvent::Backspace => {
+                self.word.pop();
+                None
+            }
+            _ => {
+                self.reset();
+                None
+            }
+        };
+        action.unwrap_or(Action::PassThrough)
     }
 
     fn handle_char(&mut self, ch: char) -> Action {
@@ -596,6 +637,18 @@ as = anh sẽ",
         engine.reset();
         engine.set_macros_enabled(false);
         assert_eq!(type_str(&mut engine, "vn "), "vn ");
+    }
+
+    #[test]
+    fn macros_in_english_mode() {
+        let mut engine = Engine::new();
+        engine.set_macros(Macros::parse("vn = Việt Nam"));
+        engine.set_mode(InputMode::English);
+        assert_eq!(type_str(&mut engine, "vn "), "vn ");
+        engine.set_macros_in_english(true);
+        assert_eq!(type_str(&mut engine, "vn "), "Việt Nam ");
+        // Other words stay plain: no Telex marks in English mode.
+        assert_eq!(type_str(&mut engine, "vieetj "), "vieetj ");
     }
 
     #[test]

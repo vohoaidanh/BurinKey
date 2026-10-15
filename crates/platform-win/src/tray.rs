@@ -33,6 +33,7 @@ const ID_TONE_CLASSIC: u32 = 5;
 const ID_AUTO_RESTORE: u32 = 6;
 const ID_SIMPLE_TELEX: u32 = 7;
 const ID_SETTINGS: u32 = 8;
+const ID_MACROS: u32 = 9;
 const ID_EXIT: u32 = 99;
 
 thread_local! {
@@ -192,6 +193,7 @@ fn show_context_menu(hwnd: HWND) {
 
         item(ID_SETTINGS, w!("Bảng điều khiển..."), false);
         let _ = SetMenuDefaultItem(menu, ID_SETTINGS, 0);
+        item(ID_MACROS, w!("Bảng gõ tắt..."), false);
         separator();
         item(
             ID_TOGGLE_MODE,
@@ -242,6 +244,9 @@ fn handle_command(id: u32) {
     match id {
         ID_SETTINGS => {
             let _ = settings::show();
+        }
+        ID_MACROS => {
+            let _ = settings::show_macro_editor();
         }
         ID_TOGGLE_MODE => hook::toggle_mode(),
         ID_TELEX => hook::with_engine(|e| e.set_style(TypingStyle::Telex)),

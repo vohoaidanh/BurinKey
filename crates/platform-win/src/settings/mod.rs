@@ -7,7 +7,10 @@
 //! in DIPs (1/96 inch); the render target scales to the monitor's DPI.
 
 mod layout;
+mod macro_editor;
 mod paint;
+
+pub use macro_editor::show as show_macro_editor;
 
 use std::cell::{Cell, RefCell};
 
@@ -40,7 +43,7 @@ use windows::Win32::UI::WindowsAndMessaging::{
     WM_SIZE, WNDCLASSW, WS_EX_APPWINDOW, WS_MINIMIZEBOX, WS_POPUP, WS_SYSMENU,
 };
 
-use crate::{autostart, config, hook, icon, macro_file, tray};
+use crate::{autostart, config, hook, icon, tray};
 use layout::{control_at, Control, HEADER, WIDTH};
 use paint::{draw, Fonts, Painter, State, BACKGROUND, WHITE};
 
@@ -218,6 +221,7 @@ fn restore_defaults() {
         e.set_tone_placement(defaults.tone_placement());
         e.set_auto_restore(defaults.auto_restore());
         e.set_macros_enabled(defaults.macros_enabled());
+        e.set_macros_in_english(defaults.macros_in_english());
     });
 }
 
@@ -241,7 +245,13 @@ fn activate(hwnd: HWND, control: Control) {
         Control::AutoRestore => hook::with_engine(|e| e.set_auto_restore(!e.auto_restore())),
         Control::Autostart => autostart::set_enabled(!autostart::is_enabled()),
         Control::Macros => hook::with_engine(|e| e.set_macros_enabled(!e.macros_enabled())),
-        Control::EditMacros => return macro_file::open_in_editor(),
+        Control::EditMacros => {
+            let _ = macro_editor::show();
+            return;
+        }
+        Control::MacrosInEnglish => {
+            hook::with_engine(|e| e.set_macros_in_english(!e.macros_in_english()))
+        }
         Control::ShowOnStart => {
             config::set_show_panel_on_start(!config::current().show_panel_on_start)
         }
@@ -257,6 +267,7 @@ fn current_state() -> State {
         tone: config.tone,
         auto_restore: config.auto_restore,
         macros: config.macros_enabled,
+        macros_in_english: config.macros_in_english,
         autostart: autostart::is_enabled(),
         show_on_start: config.show_panel_on_start,
         expanded: expanded(),
@@ -410,7 +421,13 @@ fn set_hover(hwnd: HWND, control: Option<Control>) {
         refresh();
     }
     if control.is_some() {
-        // Ask for WM_MOUSELEAVE so the hover clears when the mouse exits.
+        track_mouse_leave(hwnd);
+    }
+}
+
+/// Asks for WM_MOUSELEAVE so a hover clears when the mouse exits `hwnd`.
+fn track_mouse_leave(hwnd: HWND) {
+    {
         let mut track = TRACKMOUSEEVENT {
             cbSize: std::mem::size_of::<TRACKMOUSEEVENT>() as u32,
             dwFlags: TME_LEAVE,

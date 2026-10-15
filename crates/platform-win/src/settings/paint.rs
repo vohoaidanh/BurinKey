@@ -38,37 +38,39 @@ const fn rgb(hex: u32) -> D2D1_COLOR_F {
 
 pub const BACKGROUND: D2D1_COLOR_F = rgb(0xF7F5F3);
 pub const WHITE: D2D1_COLOR_F = rgb(0xFFFFFF);
-const CORAL: D2D1_COLOR_F = rgb(0xF47C7C);
-const CORAL_DARK: D2D1_COLOR_F = rgb(0xE56767);
-const SUN: D2D1_COLOR_F = rgb(0xFBD38D);
-const TEXT: D2D1_COLOR_F = rgb(0x1F2328);
-const TEXT_SOFT: D2D1_COLOR_F = rgb(0x4A4F57);
-const MUTED: D2D1_COLOR_F = rgb(0x8A8F98);
-const TRACK: D2D1_COLOR_F = rgb(0xE4E5E9);
-const BORDER: D2D1_COLOR_F = rgb(0xD9DADF);
-const GREY: D2D1_COLOR_F = rgb(0xA6A6A6);
-const GREY_DARK: D2D1_COLOR_F = rgb(0x939393);
-const BOX_BORDER: D2D1_COLOR_F = rgb(0xEAE6E3);
-const CHECK_BORDER: D2D1_COLOR_F = rgb(0x9A9EA6);
-const BUTTON_HOVER: D2D1_COLOR_F = rgb(0xF1F2F4);
-const HOVER_SHADE: D2D1_COLOR_F = rgba(0x000000, 0.08);
+pub(super) const CORAL: D2D1_COLOR_F = rgb(0xF47C7C);
+pub(super) const CORAL_DARK: D2D1_COLOR_F = rgb(0xE56767);
+pub(super) const SUN: D2D1_COLOR_F = rgb(0xFBD38D);
+pub(super) const TEXT: D2D1_COLOR_F = rgb(0x1F2328);
+pub(super) const TEXT_SOFT: D2D1_COLOR_F = rgb(0x4A4F57);
+pub(super) const MUTED: D2D1_COLOR_F = rgb(0x8A8F98);
+pub(super) const TRACK: D2D1_COLOR_F = rgb(0xE4E5E9);
+pub(super) const BORDER: D2D1_COLOR_F = rgb(0xD9DADF);
+pub(super) const GREY: D2D1_COLOR_F = rgb(0xA6A6A6);
+pub(super) const GREY_DARK: D2D1_COLOR_F = rgb(0x939393);
+pub(super) const BOX_BORDER: D2D1_COLOR_F = rgb(0xEAE6E3);
+pub(super) const CHECK_BORDER: D2D1_COLOR_F = rgb(0x9A9EA6);
+pub(super) const BUTTON_HOVER: D2D1_COLOR_F = rgb(0xF1F2F4);
+/// The selected row of a list.
+pub(super) const SELECTED: D2D1_COLOR_F = rgb(0xFFF0F1);
+pub(super) const HOVER_SHADE: D2D1_COLOR_F = rgba(0x000000, 0.08);
 /// All button icons share one brand color and a thin outline style.
-const ICON: D2D1_COLOR_F = rgb(0xE06666);
-const ICON_STROKE: f32 = 2.0;
+pub(super) const ICON: D2D1_COLOR_F = rgb(0xE06666);
+pub(super) const ICON_STROKE: f32 = 2.0;
 /// "Đóng" is the safe, everyday action, so it alone is green.
-const ICON_SAFE: D2D1_COLOR_F = rgb(0x4CAF50);
+pub(super) const ICON_SAFE: D2D1_COLOR_F = rgb(0x4CAF50);
 
 // ---------------------------------------------------------------------------
 // Fonts and painter
 // ---------------------------------------------------------------------------
 
 pub struct Fonts {
-    title: IDWriteTextFormat,
-    subtitle: IDWriteTextFormat,
-    label: IDWriteTextFormat,
-    body: IDWriteTextFormat,
-    button: IDWriteTextFormat,
-    centered: IDWriteTextFormat,
+    pub(super) title: IDWriteTextFormat,
+    pub(super) subtitle: IDWriteTextFormat,
+    pub(super) label: IDWriteTextFormat,
+    pub(super) body: IDWriteTextFormat,
+    pub(super) button: IDWriteTextFormat,
+    pub(super) centered: IDWriteTextFormat,
 }
 
 impl Fonts {
@@ -122,7 +124,7 @@ pub struct Painter<'a> {
 // SAFETY (all methods): the target and brush are live COM objects created
 // together, and every pointer passed points to a local that outlives the call.
 impl Painter<'_> {
-    fn fill(&self, rect: Rect, radius: f32, color: D2D1_COLOR_F) {
+    pub(super) fn fill(&self, rect: Rect, radius: f32, color: D2D1_COLOR_F) {
         unsafe {
             self.brush.SetColor(&color);
             self.target
@@ -130,7 +132,7 @@ impl Painter<'_> {
         }
     }
 
-    fn stroke(&self, rect: Rect, radius: f32, color: D2D1_COLOR_F, width: f32) {
+    pub(super) fn stroke(&self, rect: Rect, radius: f32, color: D2D1_COLOR_F, width: f32) {
         // Strokes are centred on the edge; inset half a width so they stay
         // inside `rect`.
         let rect = rect.inset(width / 2.0);
@@ -141,7 +143,7 @@ impl Painter<'_> {
         }
     }
 
-    fn circle(&self, cx: f32, cy: f32, radius: f32, color: D2D1_COLOR_F) {
+    pub(super) fn circle(&self, cx: f32, cy: f32, radius: f32, color: D2D1_COLOR_F) {
         let ellipse = D2D1_ELLIPSE {
             point: point(cx, cy),
             radiusX: radius,
@@ -153,7 +155,7 @@ impl Painter<'_> {
         }
     }
 
-    fn polyline(&self, points: &[(f32, f32)], color: D2D1_COLOR_F, width: f32) {
+    pub(super) fn polyline(&self, points: &[(f32, f32)], color: D2D1_COLOR_F, width: f32) {
         unsafe {
             self.brush.SetColor(&color);
             for pair in points.windows(2) {
@@ -166,7 +168,7 @@ impl Painter<'_> {
 
     /// An arc of radius `r` around (cx, cy), angles in degrees clockwise
     /// from 12 o'clock.
-    fn arc(&self, cx: f32, cy: f32, r: f32, degrees: (u32, u32), color: D2D1_COLOR_F) {
+    pub(super) fn arc(&self, cx: f32, cy: f32, r: f32, degrees: (u32, u32), color: D2D1_COLOR_F) {
         let points: Vec<(f32, f32)> = (degrees.0..=degrees.1)
             .step_by(10)
             .map(|deg| {
@@ -177,7 +179,13 @@ impl Painter<'_> {
         self.polyline(&points, color, ICON_STROKE);
     }
 
-    fn text(&self, text: &str, font: &IDWriteTextFormat, rect: Rect, color: D2D1_COLOR_F) {
+    pub(super) fn text(
+        &self,
+        text: &str,
+        font: &IDWriteTextFormat,
+        rect: Rect,
+        color: D2D1_COLOR_F,
+    ) {
         let wide: Vec<u16> = text.encode_utf16().collect();
         unsafe {
             self.brush.SetColor(&color);
@@ -192,7 +200,7 @@ impl Painter<'_> {
         }
     }
 
-    fn logo(&self, rect: Rect) {
+    pub(super) fn logo(&self, rect: Rect) {
         unsafe {
             self.target.DrawBitmap(
                 self.logo,
@@ -204,7 +212,7 @@ impl Painter<'_> {
         }
     }
 
-    fn clipped(&self, rect: Rect, draw: impl FnOnce()) {
+    pub(super) fn clipped(&self, rect: Rect, draw: impl FnOnce()) {
         unsafe {
             self.target
                 .PushAxisAlignedClip(&rect.d2d(), D2D1_ANTIALIAS_MODE_PER_PRIMITIVE)
@@ -237,6 +245,7 @@ pub struct State {
     pub tone: TonePlacement,
     pub auto_restore: bool,
     pub macros: bool,
+    pub macros_in_english: bool,
     pub autostart: bool,
     pub show_on_start: bool,
     pub expanded: bool,
@@ -392,6 +401,14 @@ fn draw_advanced(p: &Painter, fonts: &Fonts, state: &State, hover: Option<Contro
         "Bảng gõ tắt…",
         |x, y| icon_note(p, x, y),
     );
+    checkbox(
+        p,
+        fonts,
+        MACRO_ENGLISH_ROW,
+        "Gõ tắt cả khi tắt tiếng Việt",
+        state.macros_in_english,
+        hovered(Control::MacrosInEnglish),
+    );
 
     section(p, fonts, "HỆ THỐNG", SYSTEM_LABEL_Y, SYSTEM_BOX);
     checkbox(
@@ -417,7 +434,7 @@ fn draw_advanced(p: &Painter, fonts: &Fonts, state: &State, hover: Option<Contro
 // ---------------------------------------------------------------------------
 
 /// A bold heading above a white rounded box.
-fn section(p: &Painter, fonts: &Fonts, title: &str, label_y: f32, rect: Rect) {
+pub(super) fn section(p: &Painter, fonts: &Fonts, title: &str, label_y: f32, rect: Rect) {
     p.text(
         title,
         &fonts.label,
@@ -475,7 +492,7 @@ fn icon_chevrons(p: &Painter, x: f32, y: f32, expanded: bool) {
 }
 
 /// "Thông tin": a small note card with two lines of text.
-fn icon_note(p: &Painter, x: f32, y: f32) {
+pub(super) fn icon_note(p: &Painter, x: f32, y: f32) {
     p.stroke(
         Rect::new(x - 8.0, y - 7.0, 16.0, 14.0),
         3.0,
@@ -487,7 +504,7 @@ fn icon_note(p: &Painter, x: f32, y: f32) {
 }
 
 /// "Mặc định": an undo arrow (↶) — back to the starting settings.
-fn icon_undo(p: &Painter, x: f32, y: f32) {
+pub(super) fn icon_undo(p: &Painter, x: f32, y: f32) {
     p.polyline(&[(x + 1.0, y - 5.0), (x - 7.0, y - 5.0)], ICON, ICON_STROKE);
     let head = [(x - 3.5, y - 8.5), (x - 7.0, y - 5.0), (x - 3.5, y - 1.5)];
     p.polyline(&head, ICON, ICON_STROKE);
@@ -497,7 +514,7 @@ fn icon_undo(p: &Painter, x: f32, y: f32) {
 
 /// A white button with an icon (drawn by `icon` around its centre point)
 /// followed by `label`, both left-aligned.
-fn button(
+pub(super) fn button(
     p: &Painter,
     fonts: &Fonts,
     rect: Rect,
@@ -537,7 +554,14 @@ fn segmented<T: Copy + PartialEq>(
     }
 }
 
-fn checkbox(p: &Painter, fonts: &Fonts, row: Rect, label: &str, checked: bool, hovered: bool) {
+pub(super) fn checkbox(
+    p: &Painter,
+    fonts: &Fonts,
+    row: Rect,
+    label: &str,
+    checked: bool,
+    hovered: bool,
+) {
     let bx = Rect::new(row.x, row.y + (row.h - 20.0) / 2.0, 20.0, 20.0);
     p.fill(bx, 5.0, WHITE);
     p.stroke(bx, 5.0, mark_border(checked, hovered), 1.5);

@@ -31,6 +31,46 @@ impl Macros {
         Self { by_key }
     }
 
+    /// The list in the file format [`Macros::parse`] reads, sorted by key,
+    /// after `header` (comment lines).
+    pub fn to_text(&self, header: &str) -> String {
+        let mut text = header.to_string();
+        for (key, full) in self.entries() {
+            text.push_str(&format!("{key} = {full}\n"));
+        }
+        text
+    }
+
+    /// All `(short, full)` pairs, sorted by the short word.
+    pub fn entries(&self) -> Vec<(&str, &str)> {
+        let mut entries: Vec<(&str, &str)> = self
+            .by_key
+            .iter()
+            .map(|(k, v)| (k.as_str(), v.as_str()))
+            .collect();
+        entries.sort_unstable();
+        entries
+    }
+
+    /// Adds or replaces an entry. Returns `false` (and changes nothing) if
+    /// the short word is empty or has spaces, or the full text is empty.
+    pub fn insert(&mut self, key: &str, full: &str) -> bool {
+        let (key, full) = (key.trim(), full.trim());
+        let valid = !key.is_empty()
+            && !full.is_empty()
+            && !key
+                .chars()
+                .any(|c| c.is_whitespace() || c == '=' || c == '#');
+        if valid {
+            self.by_key.insert(key.to_lowercase(), full.to_string());
+        }
+        valid
+    }
+
+    pub fn remove(&mut self, key: &str) {
+        self.by_key.remove(&key.to_lowercase());
+    }
+
     pub fn len(&self) -> usize {
         self.by_key.len()
     }
@@ -70,6 +110,19 @@ mod tests {
         );
         assert_eq!(macros.len(), 2);
         assert_eq!(macros.expand("hcm").as_deref(), Some("Hồ Chí Minh"));
+    }
+
+    #[test]
+    fn edits_round_trip_through_text() {
+        let mut macros = Macros::default();
+        assert!(macros.insert("VN", "Việt Nam"));
+        assert!(macros.insert("hcm", "Hồ Chí Minh"));
+        assert!(!macros.insert("a b", "x"));
+        assert!(!macros.insert("x", "  "));
+        macros.remove("HCM");
+        let text = macros.to_text("# list\n");
+        assert_eq!(text, "# list\nvn = Việt Nam\n");
+        assert_eq!(Macros::parse(&text), macros);
     }
 
     #[test]
