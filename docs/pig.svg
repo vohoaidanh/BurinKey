@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Same shapes as the app icon (crates/platform-win/src/icon.rs). -->
+  <g fill="#D45A75">
+    <ellipse cx="22" cy="25" rx="16.5" ry="21.5" transform="rotate(-31.5 22 25)"/>
+    <ellipse cx="78" cy="25" rx="16.5" ry="21.5" transform="rotate(31.5 78 25)"/>
+    <ellipse cx="50" cy="56" rx="46.5" ry="41.5"/>
+  </g>
+  <g fill="#F9A8B8">
+    <ellipse cx="22" cy="25" rx="12" ry="17" transform="rotate(-31.5 22 25)"/>
+    <ellipse cx="78" cy="25" rx="12" ry="17" transform="rotate(31.5 78 25)"/>
+  </g>
+  <g fill="#F48AA2">
+    <ellipse cx="23" cy="27" rx="6" ry="10" transform="rotate(-31.5 23 27)"/>
+    <ellipse cx="77" cy="27" rx="6" ry="10" transform="rotate(31.5 77 27)"/>
+  </g>
+  <ellipse cx="50" cy="56" rx="42" ry="37" fill="#F9A8B8"/>
+  <g fill="#F7899F">
+    <ellipse cx="22" cy="66" rx="7" ry="5"/>
+    <ellipse cx="78" cy="66" rx="7" ry="5"/>
+  </g>
+  <ellipse cx="50" cy="67" rx="20.25" ry="14.75" fill="#D45A75"/>
+  <ellipse cx="50" cy="67" rx="18" ry="12.5" fill="#F27B97"/>
+  <g fill="#4A2530">
+    <ellipse cx="44" cy="67" rx="3.3" ry="5"/>
+    <ellipse cx="56" cy="67" rx="3.3" ry="5"/>
+    <ellipse cx="33" cy="47" rx="5" ry="5.5"/>
+    <ellipse cx="67" cy="47" rx="5" ry="5.5"/>
+  </g>
+</svg>

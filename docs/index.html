@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Burin Smart Key - Bộ gõ tiếng Việt mã nguồn mở</title>
+    <meta name="description" content="Burin Smart Key - bộ gõ tiếng Việt mã nguồn mở cho Windows 10/11, viết bằng Rust. Telex, Simple Telex, VNI, kiểm tra chính tả và tự khôi phục phím khi gõ tiếng Anh.">
+    <link rel="icon" type="image/svg+xml" href="pig.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #F47C7C;
+            --primary-hover: #E56767;
+            --primary-light: #FFF0F1;
+            --sun: #FBD38D;
+            --gradient: linear-gradient(135deg, #F47C7C 0%, #FBB27A 100%);
+            --dark: #1F2328;
+            --gray: #5F6773;
+            --bg: #F7F5F3;
+            --card-border: #EAE6E3;
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 10px 25px -5px rgba(244, 124, 124, 0.18), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 20px 35px -5px rgba(0, 0, 0, 0.08);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        a { color: inherit; }
+
+        .keycap {
+            display: inline-block;
+            background: #FFFFFF;
+            border: 1px solid #D3D4D9;
+            border-bottom-width: 2px;
+            padding: 1px 8px;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85em;
+            font-weight: 700;
+            color: var(--dark);
+            white-space: nowrap;
+        }
+
+        /* ---------- Navbar ---------- */
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px 20px;
+            gap: 16px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .brand-logo {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: #FFFFFF;
+            padding: 5px;
+            box-shadow: 0 4px 12px rgba(244, 124, 124, 0.25);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .brand:hover .brand-logo { transform: scale(1.1) rotate(6deg); }
+
+        .brand-text {
+            font-weight: 800;
+            font-size: 20px;
+            letter-spacing: -0.5px;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links { display: flex; align-items: center; gap: 24px; }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--gray);
+            font-weight: 600;
+            font-size: 15px;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover { color: var(--primary); }
+
+        .github-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 50px;
+            background: #FFFFFF;
+            border: 1px solid var(--card-border);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s;
+        }
+
+        .github-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.06); }
+
+        /* ---------- Hero ---------- */
+        .hero {
+            max-width: 1200px;
+            margin: 40px auto 80px;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            align-items: center;
+            gap: 56px;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--primary-light);
+            color: var(--primary-hover);
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            border: 1px solid rgba(244, 124, 124, 0.25);
+        }
+
+        .hero h1 {
+            font-size: 54px;
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: -1.5px;
+            margin-bottom: 24px;
+        }
+
+        .hero h1 span {
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 18px;
+            color: var(--gray);
+            margin-bottom: 36px;
+            max-width: 560px;
+        }
+
+        .cta-group { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+
+        .btn-download {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--gradient);
+            color: #FFFFFF;
+            padding: 16px 32px;
+            border-radius: 50px;
+            font-size: 17px;
+            font-weight: 700;
+            text-decoration: none;
+            box-shadow: var(--shadow-md);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .btn-download:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 15px 30px -5px rgba(244, 124, 124, 0.45); }
+
+        .btn-ghost {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 26px;
+            border-radius: 50px;
+            border: 1px solid var(--card-border);
+            background: #FFFFFF;
+            font-weight: 700;
+            font-size: 16px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-ghost:hover { border-color: var(--primary); color: var(--primary-hover); }
+
+        .sub-download {
+            font-size: 13px;
+            color: var(--gray);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 14px;
+        }
+
+        /* ---------- App panel mockup (mirrors the real settings panel) ---------- */
+        .preview-container { position: relative; display: flex; justify-content: center; }
+
+        .glow-effect {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(244, 124, 124, 0.25) 0%, rgba(251, 178, 122, 0.08) 50%, transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            filter: blur(40px);
+        }
+
+        .app-card {
+            position: relative;
+            width: 100%;
+            max-width: 470px;
+            background: var(--bg);
+            border-radius: 18px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            transition: transform 0.4s ease;
+        }
+
+        .app-card:hover { transform: translateY(-8px); }
+
+        .app-header {
+            position: relative;
+            background: var(--primary);
+            padding: 16px 20px;
+            color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            overflow: hidden;
+        }
+
+        .app-header::after {
+            content: "";
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: var(--sun);
+            right: -45px;
+            top: -85px;
+        }
+
+        .app-header-logo {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #FFFFFF;
+            padding: 5px;
+            flex-shrink: 0;
+        }
+
+        .app-header h3 { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; }
+        .app-header span { font-size: 12px; opacity: 0.95; font-weight: 600; }
+
+        .app-close {
+            position: absolute;
+            right: 16px;
+            top: 14px;
+            z-index: 1;
+            color: var(--dark);
+            font-size: 16px;
+        }
+
+        .app-body { padding: 16px 20px 20px; }
+
+        .app-label {
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+            margin-bottom: 8px;
+        }
+
+        .app-row { display: flex; gap: 12px; }
+
+        .app-box {
+            flex: 1;
+            background: #FFFFFF;
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 13px;
+        }
+
+        .app-line { display: flex; align-items: center; gap: 10px; }
+        .app-line > b { font-weight: 500; width: 56px; flex-shrink: 0; }
+
+        .pill-tabs {
+            display: flex;
+            background: #E4E5E9;
+            padding: 3px;
+            border-radius: 50px;
+            flex: 1;
+        }
+
+        .pill-tab {
+            flex: 1;
+            text-align: center;
+            padding: 5px 0;
+            font-size: 11.5px;
+            font-weight: 700;
+            border-radius: 50px;
+            color: #8A8F98;
+            white-space: nowrap;
+        }
+
+        .pill-tab.active { background: #FFFFFF; color: var(--dark); box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+
+        .mode-pill {
+            background: var(--primary);
+            color: #FFFFFF;
+            font-size: 11.5px;
+            font-weight: 700;
+            padding: 7px 14px;
+            border-radius: 50px;
+            white-space: nowrap;
+        }
+
+        .muted { color: #8A8F98; }
+
+        .app-buttons { display: flex; flex-direction: column; gap: 6px; width: 112px; }
+
+        .app-btn {
+            background: #FFFFFF;
+            border: 1px solid #D9DADF;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 12.5px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .app-btn svg { flex-shrink: 0; }
+
+        .app-footer { display: flex; gap: 8px; margin-top: 14px; align-items: center; }
+        .app-footer .app-btn { width: 108px; }
+        .app-footer small { color: #8A8F98; font-size: 12px; margin-left: 4px; }
+
+        /* ---------- Sections ---------- */
+        .section { max-width: 1200px; margin: 0 auto 100px; padding: 0 20px; }
+
+        .section-header { text-align: center; max-width: 640px; margin: 0 auto 56px; }
+        .section-header h2 { font-size: 36px; font-weight: 800; letter-spacing: -1px; margin-bottom: 14px; }
+        .section-header p { color: var(--gray); font-size: 17px; }
+
+        .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+
+        .feature-box {
+            background: #FFFFFF;
+            border: 1px solid var(--card-border);
+            border-radius: 22px;
+            padding: 32px 28px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .feature-box:hover { transform: translateY(-6px); border-color: rgba(244, 124, 124, 0.35); box-shadow: var(--shadow-md); }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            margin-bottom: 20px;
+            background: var(--primary-light);
+        }
+
+        .feature-box h3 { font-size: 19px; font-weight: 700; margin-bottom: 10px; letter-spacing: -0.3px; }
+        .feature-box p { color: var(--gray); font-size: 15px; }
+
+        .panel {
+            background: #FFFFFF;
+            border-radius: 30px;
+            border: 1px solid var(--card-border);
+            box-shadow: var(--shadow-sm);
+            padding: 56px 40px;
+        }
+
+        .comp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+
+        .comp-card { padding: 26px; border-radius: 18px; }
+        .comp-card.bad { background: #FEF2F2; border: 1px solid #FEE2E2; }
+        .comp-card.good { background: #F0FDF4; border: 1px solid #DCFCE7; }
+
+        .comp-title { font-weight: 800; font-size: 16px; margin-bottom: 16px; }
+        .comp-card.bad .comp-title { color: #DC2626; }
+        .comp-card.good .comp-title { color: #16A34A; }
+
+        .code-box {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            padding: 12px 16px;
+            background: #FFFFFF;
+            border-radius: 12px;
+            border: 1px solid rgba(0,0,0,0.06);
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .comp-card.bad strong { color: #DC2626; }
+        .comp-card.good strong { color: #16A34A; }
+
+        .note {
+            margin-top: 22px;
+            font-size: 14px;
+            color: var(--gray);
+            text-align: center;
+        }
+
+        .typing-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 15px;
+        }
+
+        .typing-table th, .typing-table td {
+            text-align: left;
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .typing-table th { font-size: 13px; color: var(--gray); font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; }
+        .typing-table td code { font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+        .typing-table tr:last-child td { border-bottom: none; }
+
+        /* ---------- Donate ---------- */
+        .donate-badge {
+            display: inline-flex;
+            gap: 8px;
+            background: #FFF1F2;
+            color: #E11D48;
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .donate-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 24px;
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        .donate-card {
+            background: var(--bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .donate-card:hover { transform: translateY(-4px); border-color: var(--primary); box-shadow: var(--shadow-md); }
+
+        .donate-card-title { font-size: 16px; font-weight: 800; margin-bottom: 16px; }
+
+        .qr-frame {
+            width: 170px;
+            height: 170px;
+            background: #FFFFFF;
+            border: 2px dashed #CBD5E1;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            color: #94A3B8;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+            padding: 10px;
+            overflow: hidden;
+        }
+
+        .qr-frame img { width: 100%; height: 100%; object-fit: contain; border-radius: 10px; }
+
+        .qr-fallback { display: none; flex-direction: column; align-items: center; }
+        .qr-fallback span:first-child { font-size: 32px; margin-bottom: 6px; }
+
+        .donate-info {
+            width: 100%;
+            background: #FFFFFF;
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 13px;
+        }
+
+        .donate-info-row { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+        .donate-info-row:last-child { margin-bottom: 0; }
+        .donate-info-row span:first-child { color: var(--gray); }
+        .donate-info-row span:last-child { font-weight: 700; font-family: 'JetBrains Mono', monospace; text-align: right; }
+
+        /* ---------- Install guide ---------- */
+        .guide-box { display: grid; grid-template-columns: 1fr 1.1fr; gap: 36px; align-items: center; }
+
+        .smartscreen {
+            background: #0063B1;
+            color: #FFFFFF;
+            border-radius: 16px;
+            padding: 30px 28px;
+            box-shadow: 0 12px 28px rgba(0, 99, 177, 0.25);
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .smartscreen h4 { font-size: 24px; font-weight: 600; margin-bottom: 12px; }
+        .smartscreen p { font-size: 14px; opacity: 0.92; margin-bottom: 10px; }
+        .smartscreen u { cursor: default; }
+        .smartscreen-buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 26px; }
+        .smartscreen-buttons span { border: 2px solid #FFFFFF; padding: 6px 18px; font-size: 14px; }
+        .smartscreen-buttons span.hl { background: #FFFFFF; color: #0063B1; font-weight: 700; }
+
+        .guide-steps { display: flex; flex-direction: column; gap: 18px; }
+        .step-item { display: flex; align-items: flex-start; gap: 14px; }
+
+        .step-num {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            color: var(--primary-hover);
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .step-content { font-size: 15px; color: #334155; }
+
+        .safe-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #ECFDF5;
+            color: #065F46;
+            border: 1px solid #A7F3D0;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* ---------- CTA banner ---------- */
+        .cta-banner {
+            max-width: 1160px;
+            margin: 0 auto 100px;
+            padding: 64px 40px;
+            background: var(--gradient);
+            border-radius: 32px;
+            text-align: center;
+            color: #FFFFFF;
+            box-shadow: 0 25px 50px -12px rgba(244, 124, 124, 0.45);
+        }
+
+        .cta-banner h2 { font-size: 40px; font-weight: 800; letter-spacing: -1px; margin-bottom: 14px; }
+        .cta-banner p { font-size: 18px; opacity: 0.95; max-width: 620px; margin: 0 auto 32px; }
+
+        .btn-white {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: #FFFFFF;
+            color: var(--primary-hover);
+            padding: 16px 36px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 800;
+            text-decoration: none;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transition: all 0.25s;
+        }
+
+        .btn-white:hover { transform: translateY(-3px) scale(1.03); }
+
+        /* ---------- Footer ---------- */
+        footer {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 36px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            border-top: 1px solid var(--card-border);
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        footer .credit { max-width: 560px; text-align: right; font-size: 13px; }
+
+        /* ---------- Responsive ---------- */
+        @media (max-width: 900px) {
+            .hero { grid-template-columns: 1fr; text-align: center; gap: 40px; }
+            .hero p { margin: 0 auto 30px; }
+            .cta-group, .sub-download { justify-content: center; }
+            .hero h1 { font-size: 40px; }
+            .features-grid, .comp-grid, .guide-box { grid-template-columns: 1fr; }
+            .nav-link { display: none; }
+            .panel { padding: 36px 20px; }
+            footer { flex-direction: column; text-align: center; }
+            footer .credit { text-align: center; }
+        }
+
+        @media (max-width: 520px) {
+            .app-row { flex-direction: column; }
+            .app-buttons { width: 100%; flex-direction: row; }
+            .app-buttons .app-btn { flex: 1; justify-content: center; }
+            .cta-banner h2 { font-size: 30px; }
+            .section-header h2 { font-size: 28px; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="#" class="brand">
+            <img class="brand-logo" src="pig.svg" alt="Logo Burin Smart Key">
+            <span class="brand-text">Burin Smart Key</span>
+        </a>
+        <div class="nav-links">
+            <a href="#features" class="nav-link">Tính năng</a>
+            <a href="#comparison" class="nav-link">So sánh</a>
+            <a href="#install-guide" class="nav-link">Hướng dẫn cài đặt</a>
+            <a href="#donate" class="nav-link">☕ Mời tác giả cà phê</a>
+            <a href="https://github.com/vohoaidanh/BurinKey" target="_blank" rel="noopener" class="github-btn">
+                <svg height="20" width="20" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+                GitHub
+            </a>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <header class="hero">
+        <div>
+            <div class="hero-badge">🐷 Phiên bản 0.1.0 · Đang phát triển</div>
+            <h1>Bộ Gõ Tiếng Việt <span>Nhẹ &amp; Thông Minh</span> Cho Windows</h1>
+            <p>Gõ <strong>Telex, Simple Telex, VNI</strong> quen tay như các bộ gõ phổ biến, cộng thêm <strong>kiểm tra chính tả</strong> và <strong>tự khôi phục phím</strong>: gõ tiếng Anh, tên riêng, từ chuyên ngành mà không phải tắt bộ gõ. Viết hoàn toàn bằng Rust, mã nguồn mở.</p>
+            <div class="cta-group">
+                <a href="https://github.com/vohoaidanh/BurinKey/releases/latest" class="btn-download">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    Tải Miễn Phí Cho Windows
+                </a>
+                <a href="https://github.com/vohoaidanh/BurinKey" class="btn-ghost">Xem mã nguồn</a>
+            </div>
+            <div class="sub-download">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Mã nguồn mở GPL v3 • Không quảng cáo • Windows 10/11
+            </div>
+        </div>
+
+        <!-- Mockup of the real settings panel -->
+        <div class="preview-container">
+            <div class="glow-effect"></div>
+            <div class="app-card" aria-label="Bảng điều khiển Burin Smart Key">
+                <div class="app-header">
+                    <img class="app-header-logo" src="pig.svg" alt="">
+                    <div>
+                        <h3>Burin Smart Key</h3>
+                        <span>Bộ gõ tiếng Việt mã nguồn mở</span>
+                    </div>
+                    <span class="app-close">✕</span>
+                </div>
+                <div class="app-body">
+                    <div class="app-label">ĐIỀU KHIỂN</div>
+                    <div class="app-row">
+                        <div class="app-box">
+                            <div class="app-line">
+                                <b>Kiểu gõ:</b>
+                                <div class="pill-tabs">
+                                    <div class="pill-tab active">Telex</div>
+                                    <div class="pill-tab">Simple Telex</div>
+                                    <div class="pill-tab">VNI</div>
+                                </div>
+                            </div>
+                            <div class="app-line">
+                                <b>Chế độ:</b>
+                                <span class="mode-pill">TIẾNG VIỆT (V)</span>
+                                <span class="muted">Ctrl + Shift</span>
+                            </div>
+                        </div>
+                        <div class="app-buttons">
+                            <div class="app-btn">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#4CAF50" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 9v5h13V9M8 1.5v9M5 7.5l3 3 3-3"/></svg>
+                                Đóng
+                            </div>
+                            <div class="app-btn">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#E06666" stroke-width="1.8" stroke-linecap="round"><path d="M4.5 4.5a5 5 0 1 0 7 0M8 1.5v6"/></svg>
+                                Kết thúc
+                            </div>
+                            <div class="app-btn">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#E06666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l5 4.5L13 3M3 8.5l5 4.5 5-4.5"/></svg>
+                                Mở rộng
+                            </div>
+                        </div>
+                    </div>
+                    <div class="app-footer">
+                        <div class="app-btn">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#E06666" stroke-width="1.8" stroke-linecap="round"><rect x="1.5" y="2.5" width="13" height="11" rx="2.5"/><path d="M5 6.5h6M5 10h4"/></svg>
+                            Thông tin
+                        </div>
+                        <div class="app-btn">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#E06666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4H2.5M5 1l-3 3 3 3M9 4a4.5 4.5 0 0 1 0 9H5"/></svg>
+                            Mặc định
+                        </div>
+                        <small>v0.1.0 · GNU GPL</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Features -->
+    <section class="section" id="features">
+        <div class="section-header">
+            <h2>Tại sao nên chọn Burin Smart Key?</h2>
+            <p>Giữ nguyên thói quen gõ Telex/VNI, bớt hẳn những lần phải xoá đi gõ lại.</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-box">
+                <div class="feature-icon">🔁</div>
+                <h3>Tự Khôi Phục Phím</h3>
+                <p>Gõ nhầm thành từ không phải tiếng Việt? Hết từ, bộ gõ trả lại đúng các phím bạn gõ: <span class="keycap">windows</span> không còn thành "ưindows".</p>
+            </div>
+            <div class="feature-box">
+                <div class="feature-icon">🧠</div>
+                <h3>Kiểm Tra Chính Tả</h3>
+                <p>Chỉ thêm dấu khi từ vẫn còn là âm tiết tiếng Việt hợp lệ, nên <span class="keycap">class</span>, <span class="keycap">github</span>, <span class="keycap">email</span> giữ nguyên.</p>
+            </div>
+            <div class="feature-box">
+                <div class="feature-icon">✍️</div>
+                <h3>Bỏ Dấu Tự Do</h3>
+                <p>Gõ dấu ở đâu cũng được: <span class="keycap">chungws</span> hay <span class="keycap">chungsw</span> đều ra "chứng". Dấu tự nhảy đúng chỗ khi từ dài thêm.</p>
+            </div>
+            <div class="feature-box">
+                <div class="feature-icon">⌨️</div>
+                <h3>Telex, Simple Telex, VNI</h3>
+                <p>Đủ các kiểu gõ phổ biến. <strong>Simple Telex</strong> không biến <span class="keycap">w</span> lẻ thành "ư", hợp khi gõ từ viết tắt như "pwm".</p>
+            </div>
+            <div class="feature-box">
+                <div class="feature-icon">🐷</div>
+                <h3>Khay Hệ Thống Rõ Ràng</h3>
+                <p>Icon <strong>V</strong> hồng khi gõ tiếng Việt, <strong>E</strong> xám khi tắt. Bật/tắt bằng <span class="keycap">Ctrl + Shift</span> hoặc nhấp chuột vào icon, nhấp đúp để mở bảng điều khiển.</p>
+            </div>
+            <div class="feature-box">
+                <div class="feature-icon">🦀</div>
+                <h3>Nhẹ, Viết Bằng Rust</h3>
+                <p>Một file chạy duy nhất, không cần cài thêm runtime. Đặt dấu kiểu mới (hòa, thúy) hoặc kiểu cũ (hoà, thuý), khởi động cùng Windows.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Comparison -->
+    <section class="section" id="comparison">
+        <div class="panel">
+            <div class="section-header" style="margin-bottom: 40px;">
+                <h2>Tạm biệt nỗi ức chế gõ nhầm</h2>
+                <p>Cùng một chuỗi phím Telex, khi không có và khi có tự khôi phục phím:</p>
+            </div>
+            <div class="comp-grid">
+                <div class="comp-card bad">
+                    <div class="comp-title">❌ Telex không tự khôi phục</div>
+                    <div class="code-box"><span>Gõ "windows"</span><strong>→ ưindows</strong></div>
+                    <div class="code-box"><span>Gõ "worker"</span><strong>→ ưoker</strong></div>
+                    <div class="code-box"><span>Gõ "Usb"</span><strong>→ Úb</strong></div>
+                </div>
+                <div class="comp-card good">
+                    <div class="comp-title">✨ Burin Smart Key</div>
+                    <div class="code-box"><span>Gõ "windows"</span><strong>→ windows</strong></div>
+                    <div class="code-box"><span>Gõ "worker"</span><strong>→ worker</strong></div>
+                    <div class="code-box"><span>Gõ "Usb"</span><strong>→ Usb</strong></div>
+                </div>
+            </div>
+            <p class="note">Từ có chữ cái lặp như "password", "server" vẫn bị Telex hiểu là bỏ dấu; chế độ thông minh dùng từ điển sẽ xử lý trong phiên bản sau.</p>
+        </div>
+    </section>
+
+    <!-- Typing cheat sheet -->
+    <section class="section">
+        <div class="panel">
+            <div class="section-header" style="margin-bottom: 30px;">
+                <h2>Gõ nhanh trong 1 phút</h2>
+                <p>Bảng phím Telex và VNI cơ bản.</p>
+            </div>
+            <table class="typing-table">
+                <thead><tr><th>Dấu</th><th>Telex</th><th>VNI</th><th>Ví dụ</th></tr></thead>
+                <tbody>
+                    <tr><td>Sắc, huyền, hỏi, ngã, nặng</td><td><code>s f r x j</code></td><td><code>1 2 3 4 5</code></td><td><code>vieetj</code> → việt</td></tr>
+                    <tr><td>Xoá dấu thanh</td><td><code>z</code></td><td><code>0</code></td><td><code>asz</code> → a</td></tr>
+                    <tr><td>â ê ô</td><td><code>aa ee oo</code></td><td><code>6</code></td><td><code>tooi</code> → tôi</td></tr>
+                    <tr><td>ă ơ ư</td><td><code>w</code></td><td><code>8 7 7</code></td><td><code>dduwowcj</code> → được</td></tr>
+                    <tr><td>đ</td><td><code>dd</code></td><td><code>9</code></td><td><code>ddi</code> → đi</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Donate -->
+    <section class="section" id="donate">
+        <div class="panel" style="text-align: center;">
+            <div class="donate-badge">☕ Tiếp thêm năng lượng</div>
+            <div class="section-header" style="margin-bottom: 36px;">
+                <h2>Mời Tác Giả Một Ly Cà Phê Nhé!</h2>
+                <p>Burin Smart Key hoàn toàn miễn phí và mã nguồn mở. Nếu bộ gõ giúp bạn làm việc nhanh hơn, một ly cà phê sẽ giúp mình duy trì và phát triển thêm tính năng mới. Cảm ơn bạn rất nhiều! 🥰</p>
+            </div>
+            <div class="donate-grid">
+                <div class="donate-card">
+                    <div class="donate-card-title">🏦 Chuyển Khoản Ngân Hàng</div>
+                    <div class="qr-frame">
+                        <img src="qr_bank.png" alt="Mã QR ngân hàng" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="qr-fallback"><span>📲</span><span>Quét mã VietQR</span></div>
+                    </div>
+                    <div class="donate-info">
+                        <div class="donate-info-row"><span>Ngân hàng:</span><span>MB Bank / Vietcombank</span></div>
+                        <div class="donate-info-row"><span>Số tài khoản:</span><span>090xxxxxxx</span></div>
+                        <div class="donate-info-row"><span>Chủ tài khoản:</span><span>VÕ HOÀI DANH</span></div>
+                    </div>
+                </div>
+                <div class="donate-card">
+                    <div class="donate-card-title">🌸 Ví Điện Tử MoMo</div>
+                    <div class="qr-frame">
+                        <img src="qr_momo.png" alt="Mã QR MoMo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="qr-fallback"><span>👛</span><span>Quét mã MoMo</span></div>
+                    </div>
+                    <div class="donate-info">
+                        <div class="donate-info-row"><span>Ví:</span><span>MoMo</span></div>
+                        <div class="donate-info-row"><span>Số điện thoại:</span><span>090xxxxxxx</span></div>
+                        <div class="donate-info-row"><span>Người nhận:</span><span>VÕ HOÀI DANH</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Install guide -->
+    <section class="section" id="install-guide">
+        <div class="panel">
+            <div class="section-header" style="margin-bottom: 36px;">
+                <h2>💡 Lưu ý khi chạy lần đầu</h2>
+                <p>Cách xử lý khi Windows hiện cảnh báo Microsoft Defender SmartScreen</p>
+            </div>
+            <div class="guide-box">
+                <div class="smartscreen" aria-hidden="true">
+                    <h4>Windows protected your PC</h4>
+                    <p>Microsoft Defender SmartScreen prevented an unrecognized app from starting.</p>
+                    <p><u>More info</u></p>
+                    <div class="smartscreen-buttons"><span class="hl">Run anyway</span><span>Don't run</span></div>
+                </div>
+                <div class="guide-steps">
+                    <div class="step-item">
+                        <div class="step-num">1</div>
+                        <div class="step-content">Nếu Windows hiện bảng xanh <em>"Windows protected your PC"</em>, nhấn dòng chữ <strong>"More info"</strong> (Thêm thông tin).</div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-num">2</div>
+                        <div class="step-content">Nhấn nút <strong>"Run anyway"</strong> (Vẫn chạy) vừa xuất hiện. Icon <strong>V</strong> sẽ hiện ở khay hệ thống, cạnh đồng hồ.</div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-num">3</div>
+                        <div class="step-content"><strong>Vì sao có cảnh báo?</strong> Windows cảnh báo với ứng dụng mới phát hành chưa có chữ ký số thương mại. Toàn bộ mã nguồn công khai trên GitHub để bạn kiểm tra.</div>
+                    </div>
+                    <div>
+                        <span class="safe-badge">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                            Mã nguồn mở, minh bạch trên GitHub
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA banner -->
+    <div class="cta-banner">
+        <h2>Sẵn sàng gõ tiếng Việt mượt mà hơn?</h2>
+        <p>Tải Burin Smart Key miễn phí, hoặc tự build từ mã nguồn với <code>cargo build --release</code>.</p>
+        <a href="https://github.com/vohoaidanh/BurinKey/releases/latest" class="btn-white">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Tải Bản Mới Nhất
+        </a>
+    </div>
+
+    <footer>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <img src="pig.svg" width="26" height="26" alt="">
+            <span>© 2026 Burin Smart Key · Giấy phép <a href="https://github.com/vohoaidanh/BurinKey/blob/main/LICENSE">GNU GPL v3</a></span>
+        </div>
+        <div class="credit">
+            Dữ liệu âm tiết lấy từ bảng của UniKey (© Phạm Kim Long, LGPL) — xem
+            <a href="https://github.com/vohoaidanh/BurinKey/blob/main/NOTICE">NOTICE</a>.
+            Dự án độc lập, không liên kết với UniKey. Viết bằng Rust 🦀
+        </div>
+    </footer>
+
+</body>
+</html>
