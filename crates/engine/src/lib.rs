@@ -12,11 +12,13 @@
 //! word's before/after rendering into the backspaces + text an
 //! [`Action::Replace`] needs.
 
+mod macros;
 mod spelling;
 mod telex;
 mod vni;
 mod word;
 
+pub use macros::Macros;
 pub use spelling::TonePlacement;
 use word::Word;
 
@@ -83,6 +85,8 @@ pub struct Engine {
     style: TypingStyle,
     word: Word,
     auto_restore: bool,
+    macros: Macros,
+    macros_enabled: bool,
 }
 
 impl Engine {
@@ -96,6 +100,8 @@ impl Engine {
             style,
             word: Word::new(TonePlacement::Modern),
             auto_restore: true,
+            macros: Macros::default(),
+            macros_enabled: true,
         }
     }
 
@@ -136,6 +142,20 @@ impl Engine {
         self.auto_restore = on;
     }
 
+    pub fn macros_enabled(&self) -> bool {
+        self.macros_enabled
+    }
+
+    /// "Cho phép gõ tắt".
+    pub fn set_macros_enabled(&mut self, on: bool) {
+        self.macros_enabled = on;
+    }
+
+    /// Replaces the gõ tắt list.
+    pub fn set_macros(&mut self, macros: Macros) {
+        self.macros = macros;
+    }
+
     /// Clears any in-progress word, e.g. on word boundary, mode switch, or focus change.
     pub fn reset(&mut self) {
         self.word.clear();
@@ -162,7 +182,9 @@ impl Engine {
 
     fn handle_char(&mut self, ch: char) -> Action {
         if self.style.is_word_break(ch) {
-            let action = self.restore_action(ch);
+            let action = self
+                .macro_action(ch)
+                .unwrap_or_else(|| self.restore_action(ch));
             self.reset();
             return action;
         }
@@ -176,6 +198,24 @@ impl Engine {
         self.style.handle_key(&mut self.word, ch);
         let after = self.word.render();
         append_action(&before, &after, ch)
+    }
+
+    /// At a word break, swaps a gõ tắt word for its full text. The word is
+    /// looked up as typed ("as" → á still matches "as") and as shown.
+    fn macro_action(&self, ch: char) -> Option<Action> {
+        if !self.macros_enabled || self.macros.is_empty() {
+            return None;
+        }
+        let shown = self.word.render();
+        let full = self
+            .word
+            .typed_keys()
+            .and_then(|keys| self.macros.expand(keys))
+            .or_else(|| self.macros.expand(&shown))?;
+        Some(Action::Replace {
+            backspaces: shown.chars().count() as u8,
+            insert: format!("{full}{ch}"),
+        })
     }
 
     /// At a word break, swaps a non-Vietnamese word back to its raw keys and
@@ -536,6 +576,26 @@ mod tests {
         assert_eq!(vni("nguoi72"), "người");
         assert_eq!(vni("duoc759"), "được");
         assert_eq!(vni("tieng61"), "tiếng");
+    }
+
+    #[test]
+    fn macros_expand_at_word_break() {
+        let mut engine = Engine::new();
+        engine.set_macros(Macros::parse(
+            "vn = Việt Nam
+as = anh sẽ",
+        ));
+        assert_eq!(type_str(&mut engine, "vn "), "Việt Nam ");
+        engine.reset();
+        assert_eq!(type_str(&mut engine, "VN, "), "VIỆT NAM, ");
+        engine.reset();
+        // Matched by the keys typed, even though Telex showed "á".
+        assert_eq!(type_str(&mut engine, "as."), "anh sẽ.");
+        engine.reset();
+        assert_eq!(type_str(&mut engine, "vnn "), "vnn ");
+        engine.reset();
+        engine.set_macros_enabled(false);
+        assert_eq!(type_str(&mut engine, "vn "), "vn ");
     }
 
     #[test]

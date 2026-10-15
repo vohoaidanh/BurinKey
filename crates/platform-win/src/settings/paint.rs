@@ -236,6 +236,7 @@ pub struct State {
     pub style: TypingStyle,
     pub tone: TonePlacement,
     pub auto_restore: bool,
+    pub macros: bool,
     pub autostart: bool,
     pub show_on_start: bool,
     pub expanded: bool,
@@ -373,6 +374,23 @@ fn draw_advanced(p: &Painter, fonts: &Fonts, state: &State, hover: Option<Contro
         "Đặt dấu kiểu cũ: hoà, thuý (thay vì hòa, thúy)",
         state.tone == TonePlacement::Classic,
         hovered(Control::ClassicTone),
+    );
+    checkbox(
+        p,
+        fonts,
+        MACRO_ROW,
+        "Cho phép gõ tắt (vn → Việt Nam)",
+        state.macros,
+        hovered(Control::Macros),
+    );
+    let edit = hovered(Control::EditMacros);
+    button(
+        p,
+        fonts,
+        MACRO_BUTTON,
+        edit,
+        "Bảng gõ tắt…",
+        |x, y| icon_note(p, x, y),
     );
 
     section(p, fonts, "HỆ THỐNG", SYSTEM_LABEL_Y, SYSTEM_BOX);

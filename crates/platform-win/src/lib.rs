@@ -9,6 +9,7 @@ mod config;
 mod hook;
 mod icon;
 mod inject;
+mod macro_file;
 mod settings;
 mod tray;
 
@@ -38,6 +39,7 @@ pub fn run(start_in_tray: bool) -> Result<()> {
     }
 
     let config = config::load();
+    macro_file::load();
     let _hook = hook::KeyboardHook::install()?;
     let _tray = tray::TrayIcon::create()?;
     if !start_in_tray && config.show_panel_on_start {

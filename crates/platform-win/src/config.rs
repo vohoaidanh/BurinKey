@@ -19,6 +19,7 @@ pub struct Config {
     pub style: TypingStyle,
     pub tone: TonePlacement,
     pub auto_restore: bool,
+    pub macros_enabled: bool,
     pub show_panel_on_start: bool,
 }
 
@@ -30,6 +31,7 @@ impl Default for Config {
             style: engine.style(),
             tone: engine.tone_placement(),
             auto_restore: engine.auto_restore(),
+            macros_enabled: engine.macros_enabled(),
             show_panel_on_start: true,
         }
     }
@@ -68,6 +70,9 @@ impl Config {
                 "auto_restore" => {
                     config.auto_restore = parse_bool(value).unwrap_or(config.auto_restore)
                 }
+                "macros" => {
+                    config.macros_enabled = parse_bool(value).unwrap_or(config.macros_enabled)
+                }
                 "show_panel_on_start" => {
                     config.show_panel_on_start =
                         parse_bool(value).unwrap_or(config.show_panel_on_start)
@@ -94,9 +99,11 @@ impl Config {
              style = \"{style}\"  # telex | simple-telex | vni\n\
              tone = \"{tone}\"  # modern (tone on o: hoa) | classic (tone on a)\n\
              auto_restore = {}\n\
+             macros = {}\n\
              show_panel_on_start = {}\n",
             self.mode == InputMode::Vietnamese,
             self.auto_restore,
+            self.macros_enabled,
             self.show_panel_on_start,
         )
     }
@@ -140,19 +147,29 @@ pub fn load() -> Config {
         e.set_style(config.style);
         e.set_tone_placement(config.tone);
         e.set_auto_restore(config.auto_restore);
+        e.set_macros_enabled(config.macros_enabled);
     });
     SHOW_PANEL_ON_START.with(|c| c.set(config.show_panel_on_start));
     config
 }
 
 pub fn current() -> Config {
-    let (mode, style, tone, auto_restore) =
-        hook::with_engine(|e| (e.mode(), e.style(), e.tone_placement(), e.auto_restore()));
+    let (mode, style, tone, auto_restore, macros_enabled) = hook::with_engine(|e| {
+        let restore = e.auto_restore();
+        (
+            e.mode(),
+            e.style(),
+            e.tone_placement(),
+            restore,
+            e.macros_enabled(),
+        )
+    });
     Config {
         mode,
         style,
         tone,
         auto_restore,
+        macros_enabled,
         show_panel_on_start: SHOW_PANEL_ON_START.with(Cell::get),
     }
 }
@@ -193,6 +210,7 @@ mod tests {
             style: TypingStyle::SimpleTelex,
             tone: TonePlacement::Classic,
             auto_restore: false,
+            macros_enabled: false,
             show_panel_on_start: false,
         };
         assert_eq!(Config::parse(&config.to_text()), config);

@@ -150,6 +150,11 @@ impl Word {
         (self.keys_match && marked && !vietnamese).then(|| self.keys.clone())
     }
 
+    /// The keys typed for this word, unless Backspace broke the link.
+    pub fn typed_keys(&self) -> Option<&str> {
+        self.keys_match.then_some(self.keys.as_str())
+    }
+
     /// Deletes the last letter. Its tone goes with it if it carried the tone.
     pub fn pop(&mut self) -> bool {
         if self.letters.is_empty() {

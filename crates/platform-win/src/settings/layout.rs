@@ -28,16 +28,23 @@ pub const EXPAND_BUTTON: Rect = Rect::new(SIDE_X, 186.0, SIDE_W, 34.0);
 
 // Advanced options, only in the expanded view.
 pub const OPTIONS_LABEL_Y: f32 = 238.0;
-pub const OPTIONS_BOX: Rect = Rect::new(MARGIN, 260.0, FULL, 72.0);
+pub const OPTIONS_BOX: Rect = Rect::new(MARGIN, 260.0, FULL, 102.0);
 pub const RESTORE_ROW: Rect = Rect::new(MARGIN + PADDING, 268.0, FULL - 2.0 * PADDING, 28.0);
 pub const CLASSIC_TONE_ROW: Rect = Rect::new(MARGIN + PADDING, 298.0, FULL - 2.0 * PADDING, 28.0);
-pub const SYSTEM_LABEL_Y: f32 = 344.0;
-pub const SYSTEM_BOX: Rect = Rect::new(MARGIN, 366.0, FULL, 72.0);
-pub const AUTOSTART_ROW: Rect = Rect::new(MARGIN + PADDING, 374.0, FULL - 2.0 * PADDING, 28.0);
-pub const SHOW_ON_START_ROW: Rect = Rect::new(MARGIN + PADDING, 404.0, FULL - 2.0 * PADDING, 28.0);
+pub const MACRO_BUTTON: Rect = Rect::new(WIDTH - MARGIN - PADDING - 150.0, 328.0, 150.0, 28.0);
+pub const MACRO_ROW: Rect = Rect::new(
+    MARGIN + PADDING,
+    328.0,
+    MACRO_BUTTON.x - MARGIN - 2.0 * PADDING,
+    28.0,
+);
+pub const SYSTEM_LABEL_Y: f32 = 374.0;
+pub const SYSTEM_BOX: Rect = Rect::new(MARGIN, 396.0, FULL, 72.0);
+pub const AUTOSTART_ROW: Rect = Rect::new(MARGIN + PADDING, 404.0, FULL - 2.0 * PADDING, 28.0);
+pub const SHOW_ON_START_ROW: Rect = Rect::new(MARGIN + PADDING, 434.0, FULL - 2.0 * PADDING, 28.0);
 
 const FOOTER_COMPACT_Y: f32 = 238.0;
-const FOOTER_EXPANDED_Y: f32 = 456.0;
+const FOOTER_EXPANDED_Y: f32 = 486.0;
 const FOOTER_BUTTON: (f32, f32) = (130.0, 34.0);
 
 pub const STYLES: [(TypingStyle, &str); 3] = [
@@ -56,6 +63,8 @@ pub enum Control {
     Quit,
     Expand,
     ClassicTone,
+    Macros,
+    EditMacros,
     AutoRestore,
     Autostart,
     ShowOnStart,
@@ -138,6 +147,8 @@ fn controls(expanded: bool) -> Vec<(Control, Rect)> {
     }
     if expanded {
         list.push((Control::ClassicTone, CLASSIC_TONE_ROW));
+        list.push((Control::Macros, MACRO_ROW));
+        list.push((Control::EditMacros, MACRO_BUTTON));
         list.push((Control::AutoRestore, RESTORE_ROW));
         list.push((Control::Autostart, AUTOSTART_ROW));
         list.push((Control::ShowOnStart, SHOW_ON_START_ROW));

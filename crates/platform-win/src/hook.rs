@@ -235,6 +235,7 @@ fn handle_event(wparam: WPARAM, lparam: LPARAM) -> bool {
     }
 
     reset_on_focus_change();
+    crate::macro_file::reload_if_changed();
 
     let event = classify_key(data.vkCode);
     let action = ENGINE.with(|e| e.borrow_mut().process(event));

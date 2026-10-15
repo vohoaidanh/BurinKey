@@ -40,7 +40,7 @@ use windows::Win32::UI::WindowsAndMessaging::{
     WM_SIZE, WNDCLASSW, WS_EX_APPWINDOW, WS_MINIMIZEBOX, WS_POPUP, WS_SYSMENU,
 };
 
-use crate::{autostart, config, hook, icon, tray};
+use crate::{autostart, config, hook, icon, macro_file, tray};
 use layout::{control_at, Control, HEADER, WIDTH};
 use paint::{draw, Fonts, Painter, State, BACKGROUND, WHITE};
 
@@ -217,6 +217,7 @@ fn restore_defaults() {
         e.set_style(defaults.style());
         e.set_tone_placement(defaults.tone_placement());
         e.set_auto_restore(defaults.auto_restore());
+        e.set_macros_enabled(defaults.macros_enabled());
     });
 }
 
@@ -239,6 +240,8 @@ fn activate(hwnd: HWND, control: Control) {
         }),
         Control::AutoRestore => hook::with_engine(|e| e.set_auto_restore(!e.auto_restore())),
         Control::Autostart => autostart::set_enabled(!autostart::is_enabled()),
+        Control::Macros => hook::with_engine(|e| e.set_macros_enabled(!e.macros_enabled())),
+        Control::EditMacros => return macro_file::open_in_editor(),
         Control::ShowOnStart => {
             config::set_show_panel_on_start(!config::current().show_panel_on_start)
         }
@@ -247,15 +250,15 @@ fn activate(hwnd: HWND, control: Control) {
 }
 
 fn current_state() -> State {
-    let (mode, style, tone, auto_restore) =
-        hook::with_engine(|e| (e.mode(), e.style(), e.tone_placement(), e.auto_restore()));
+    let config = config::current();
     State {
-        mode,
-        style,
-        tone,
-        auto_restore,
+        mode: config.mode,
+        style: config.style,
+        tone: config.tone,
+        auto_restore: config.auto_restore,
+        macros: config.macros_enabled,
         autostart: autostart::is_enabled(),
-        show_on_start: config::current().show_panel_on_start,
+        show_on_start: config.show_panel_on_start,
         expanded: expanded(),
     }
 }
