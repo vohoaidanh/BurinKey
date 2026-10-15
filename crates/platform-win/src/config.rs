@@ -89,10 +89,10 @@ impl Config {
             TonePlacement::Classic => "classic",
         };
         format!(
-            "# Burin Smart Key — cài đặt (tự ghi khi thay đổi trong app)\n\
+            "# Burin Smart Key settings (saved by the app on every change)\n\
              vietnamese = {}\n\
              style = \"{style}\"  # telex | simple-telex | vni\n\
-             tone = \"{tone}\"  # modern (hòa, thúy) | classic (hoà, thuý)\n\
+             tone = \"{tone}\"  # modern (tone on o: hoa) | classic (tone on a)\n\
              auto_restore = {}\n\
              show_panel_on_start = {}\n",
             self.mode == InputMode::Vietnamese,
