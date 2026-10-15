@@ -38,12 +38,7 @@ pub const MACRO_ROW: Rect = Rect::new(
     MACRO_BUTTON.x - MARGIN - 2.0 * PADDING,
     28.0,
 );
-pub const MACRO_ENGLISH_ROW: Rect = Rect::new(
-    MARGIN + PADDING + 30.0,
-    358.0,
-    FULL - 2.0 * PADDING - 30.0,
-    28.0,
-);
+pub const MACRO_ENGLISH_ROW: Rect = Rect::new(MARGIN + PADDING, 358.0, FULL - 2.0 * PADDING, 28.0);
 pub const SYSTEM_LABEL_Y: f32 = 404.0;
 pub const SYSTEM_BOX: Rect = Rect::new(MARGIN, 426.0, FULL, 72.0);
 pub const AUTOSTART_ROW: Rect = Rect::new(MARGIN + PADDING, 434.0, FULL - 2.0 * PADDING, 28.0);
