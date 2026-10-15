@@ -1,0 +1,33 @@
+Burin Smart Key (viet-ime) — bộ gõ tiếng Việt cho Windows 10/11
+Copyright (C) 2026 viet-ime contributors
+Licensed under the GNU General Public License version 3 or later (see LICENSE).
+
+Nguồn gốc / Origin
+------------------
+Burin Smart Key được viết mới hoàn toàn bằng Rust. Đây KHÔNG phải bản sửa đổi
+hay bản rẽ nhánh (fork) của UniKey, và không chứa hàm hay tệp mã nguồn nào
+của UniKey: cách xử lý phím, kiểm tra chính tả, đặt dấu và khôi phục phím đều
+là thiết kế riêng của dự án.
+
+Riêng DỮ LIỆU âm tiết trong crates/engine/src/spelling.rs (danh sách phụ âm,
+danh sách cụm nguyên âm và các phụ âm cuối đi kèm) được lấy từ bảng dữ liệu
+của UniKey, chuyển sang định dạng của dự án:
+
+Burin Smart Key is written from scratch in Rust. It is NOT a modified version
+or fork of UniKey and contains none of UniKey's functions or source files.
+Only the syllable DATA in crates/engine/src/spelling.rs (consonant list, vowel
+sequences and their allowed final consonants) comes from UniKey's tables
+(CSeqList, VSeqList, VCPairList), rewritten in this project's format:
+
+  UniKey Vietnamese Input Method
+  Copyright (C) 2000-2005 Pham Kim Long <unikey@gmail.com>
+  http://unikey.org
+  Licensed under the GNU Lesser General Public License version 2 or later,
+  used here under the GNU GPL version 3 or later (LGPL v2.1 section 3).
+
+Burin Smart Key là dự án độc lập, không liên kết và không được UniKey hay tác
+giả của UniKey bảo trợ.
+Burin Smart Key is an independent project, not affiliated with or endorsed by
+UniKey or its author.
+
+Third-party Rust crates are used under their own licenses (see Cargo.lock).

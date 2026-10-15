@@ -1,0 +1,8 @@
+[package]
+name = "viet-ime"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+platform-win = { path = "../platform-win" }
