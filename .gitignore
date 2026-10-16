@@ -1,1 +1,5 @@
 /target
+/tools/correction/.venv/
+/tools/correction/data/
+__pycache__/
+/tools/correction/samples/*.wrong.tsv
