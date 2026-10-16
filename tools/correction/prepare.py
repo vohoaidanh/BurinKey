@@ -1,6 +1,7 @@
 """Builds data/model.pkl from
   data/words.txt              undertheseanlp dictionary (GPL-3.0)
   data/vi_2gram_word.parquet  wikilangs/vi 2-gram counts (MIT, from Wikipedia)
+  data/vi_3gram_word.parquet  wikilangs/vi 3-gram counts, into data/trigram.pkl
 
 Keeps only Vietnamese syllables, merges case, and drops rare pairs."""
 
@@ -13,12 +14,13 @@ from collections import Counter, defaultdict
 
 import pyarrow.parquet as pq
 
-from common import DATA, MODEL, TONE_KEYS
+from common import DATA, MODEL, TONE_KEYS, TRIGRAM
 
 sys.stdout.reconfigure(encoding="utf-8")
 
 MIN_UNIGRAM = 20  # a syllable must appear this often in Wikipedia
 MIN_PAIR = 3      # a pair must appear this often
+MIN_TRIPLE = 3    # and a triple
 
 # Rough shape check, enough for experiments (the app will use spelling.rs).
 SHAPE = re.compile(
@@ -74,6 +76,30 @@ def main():
     with open(MODEL, "wb") as f:
         pickle.dump((syllables, unigram, dict(bigram)), f)
     print(f"đã ghi {MODEL}")
+    build_trigram(keep)
+
+
+def ngrams(path):
+    """(words, count) for every row, lower-cased, read in batches."""
+    for batch in pq.ParquetFile(path).iter_batches(columns=["ngram", "frequency"], batch_size=200_000):
+        for ngram, freq in zip(batch.column(0).to_pylist(), batch.column(1).to_pylist()):
+            yield tuple(unicodedata.normalize("NFC", w.lower()) for w in json.loads(ngram)), freq
+
+
+def build_trigram(keep):
+    triples = Counter()
+    for words, freq in ngrams(DATA / "vi_3gram_word.parquet"):
+        if all(w in keep for w in words):
+            triples[words] += freq
+    trigram = defaultdict(dict)
+    for (a, b, c), n in triples.items():
+        if n >= MIN_TRIPLE:
+            trigram[a, b][c] = n
+    entries = sum(len(v) for v in trigram.values())
+    print(f"bộ 3-gram giữ lại: {entries}  (~{entries * 7 / 1e6:.1f} MB nếu 7 byte/bộ)")
+    with open(TRIGRAM, "wb") as f:
+        pickle.dump(dict(trigram), f)
+    print(f"đã ghi {TRIGRAM}")
 
 
 if __name__ == "__main__":

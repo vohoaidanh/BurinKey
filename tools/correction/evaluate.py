@@ -1,4 +1,4 @@
-"""Scores every method on made-up typos of word pairs drawn from the 2-gram
+"""Scores every method on made-up typos of word triples drawn from the 3-gram
 counts (Wikipedia). Use it to tune a method; use report.py, on text the
 counts have never seen, to judge it.
 
@@ -17,15 +17,17 @@ sys.stdout.reconfigure(encoding="utf-8")
 
 
 def samples(model, n, rng):
-    pairs = [(a, b, c) for a, nexts in model.bigram.items() for b, c in nexts.items()]
-    picked = rng.choices(pairs, weights=[c for _, _, c in pairs], k=n)
-    return [(prev, mistype(word, rng)[0], word) for prev, word, _ in picked]
+    """(context, typed keys, right word) for `n` word triples drawn by
+    how often they occur."""
+    triples = [(ab, c, n) for ab, nexts in model.trigram.items() for c, n in nexts.items()]
+    picked = rng.choices(triples, weights=[n for _, _, n in triples], k=n)
+    return [(ab, mistype(word, rng)[0], word) for ab, word, _ in picked]
 
 
 def score(method, tests):
     top1 = top5 = 0
-    for prev, keys, want in tests:
-        words = [w for w, _ in method.rank(prev, keys)]
+    for context, keys, want in tests:
+        words = [w for w, _ in method.rank(context, keys)]
         top1 += words[:1] == [want]
         top5 += want in words[:5]
     return top1 / len(tests), top5 / len(tests)
@@ -36,7 +38,7 @@ def main():
     rng = random.Random(int(sys.argv[2]) if len(sys.argv) > 2 else 1)
     model = load()
     tests = samples(model, n, rng)
-    print(f"{len(tests)} lỗi giả, ví dụ: " + ", ".join(f"{p} {k}→{w}" for p, k, w in tests[:4]))
+    print(f"{len(tests)} lỗi giả, ví dụ: " + ", ".join(f"{' '.join(c)} {k}→{w}" for c, k, w in tests[:4]))
     for method in load_all(model):
         t = time.perf_counter()
         top1, top5 = score(method, tests)

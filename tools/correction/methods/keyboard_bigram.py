@@ -37,17 +37,22 @@ class Method:
     def likeness(self, typed, word, limit):
         return min(distance(typed, form, self.costs, limit) for form in self.forms[word])
 
-    def rank(self, prev, keys, top=10):
-        m = self.model
+    # The language-model side; keyboard_trigram overrides these two.
+    def p_context(self, context, word):
+        return self.model.p_bigram(context, word)
+
+    def likely_next(self, context):
+        return self.model.likely_next(context, self.by_context)
+
+    def rank(self, context, keys, top=10):
         typed = bag(keys)
-        by_bag = sorted(m.bags, key=lambda sb: bag_distance(typed, sb[1]))
+        by_bag = sorted(self.model.bags, key=lambda sb: bag_distance(typed, sb[1]))
         candidates = {s for s, _ in by_bag[: self.by_keys]}
-        nexts = m.bigram.get(prev, {})
-        candidates.update(sorted(nexts, key=nexts.get, reverse=True)[: self.by_context])
+        candidates.update(self.likely_next(context))
 
         scored = []
         for s in candidates:
             d = self.likeness(keys, s, limit=4.0)
-            scored.append((s, math.log(m.p_bigram(prev, s)) - self.per_unit * d))
+            scored.append((s, math.log(self.p_context(context, s)) - self.per_unit * d))
         scored.sort(key=lambda x: -x[1])
         return scored[:top]

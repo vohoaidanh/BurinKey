@@ -1,7 +1,8 @@
 # Sets up the correction experiments on a fresh clone (Windows PowerShell):
 #   - a local Python venv in .venv\ (nothing is installed system-wide)
-#   - the dictionary and 2-gram data in data\, pinned to fixed versions
-#   - data\model.pkl, built from them
+#   - the dictionary, 2-gram and 3-gram data in data\ (~220 MB), pinned to
+#     fixed versions
+#   - data\model.pkl and data\trigram.pkl, built from them
 #
 #   cd tools\correction
 #   powershell -ExecutionPolicy Bypass -File setup.ps1
@@ -14,6 +15,7 @@ Set-Location $PSScriptRoot
 # Fixed data versions, so every machine gets the same numbers.
 $Dictionary = "https://raw.githubusercontent.com/undertheseanlp/dictionary/2c078cfc373b06e2980d324ce1d7bd13740c3319/dictionary/words.txt"
 $Bigrams = "https://huggingface.co/wikilangs/vi/resolve/842a305dc82209ca3aab1749aa38a475926adeeb/models/word_ngram/vi_2gram_word.parquet"
+$Trigrams = "https://huggingface.co/wikilangs/vi/resolve/842a305dc82209ca3aab1749aa38a475926adeeb/models/word_ngram/vi_3gram_word.parquet"
 
 $Python = ".venv\Scripts\python.exe"
 
@@ -28,7 +30,12 @@ Write-Host "Cai thu vien tu requirements.txt ..."
 if ($LASTEXITCODE -ne 0) { throw "pip install that bai." }
 
 New-Item -ItemType Directory -Force data | Out-Null
-foreach ($item in @(@("data\words.txt", $Dictionary), @("data\vi_2gram_word.parquet", $Bigrams))) {
+$Downloads = @(
+    @("data\words.txt", $Dictionary),
+    @("data\vi_2gram_word.parquet", $Bigrams),
+    @("data\vi_3gram_word.parquet", $Trigrams)
+)
+foreach ($item in $Downloads) {
     $path, $url = $item
     if (-not (Test-Path $path)) {
         Write-Host "Tai $path ..."
@@ -36,8 +43,8 @@ foreach ($item in @(@("data\words.txt", $Dictionary), @("data\vi_2gram_word.parq
     }
 }
 
-if (-not (Test-Path "data\model.pkl")) {
-    Write-Host "Dung data\model.pkl ..."
+if (-not (Test-Path "data\model.pkl") -or -not (Test-Path "data\trigram.pkl")) {
+    Write-Host "Dung data\model.pkl va data\trigram.pkl (khoang 1 phut) ..."
     & $Python prepare.py
     if ($LASTEXITCODE -ne 0) { throw "prepare.py that bai." }
 }

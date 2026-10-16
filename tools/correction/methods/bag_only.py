@@ -14,7 +14,7 @@ class Method:
         self.model = model
         self.per_key = per_key
 
-    def rank(self, prev, keys, top=10):
+    def rank(self, context, keys, top=10):
         typed = bag(keys)
         scored = [
             (s, -self.per_key * bag_distance(typed, b) + math.log(self.model.p_unigram(s)))

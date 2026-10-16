@@ -18,17 +18,16 @@ class Method:
         self.by_keys = by_keys
         self.by_context = by_context
 
-    def rank(self, prev, keys, top=10):
+    def rank(self, context, keys, top=10):
         m = self.model
         typed = bag(keys)
         dist = {s: bag_distance(typed, b) for s, b in m.bags}
 
         candidates = set(sorted(dist, key=dist.get)[: self.by_keys])
-        nexts = m.bigram.get(prev, {})
-        candidates.update(sorted(nexts, key=nexts.get, reverse=True)[: self.by_context])
+        candidates.update(m.likely_next(context, self.by_context))
 
         scored = [
-            (s, math.log(m.p_bigram(prev, s)) - self.per_key * dist[s]) for s in candidates
+            (s, math.log(m.p_bigram(context, s)) - self.per_key * dist[s]) for s in candidates
         ]
         scored.sort(key=lambda x: -x[1])
         return scored[:top]

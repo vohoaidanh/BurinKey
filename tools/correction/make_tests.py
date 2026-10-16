@@ -2,8 +2,9 @@
 
     python make_tests.py [text file] [seed]
 
-Every known syllable after the first becomes one test: the word before
-it, the word typed with one slip, the right word, and the kind of slip.
+Every known syllable after the first becomes one test: the (up to) two
+words before it, the word typed with one slip, the right word, and the
+kind of slip.
 Written next to the text as <name>.tests.tsv so all methods are judged on
 exactly the same cases."""
 
@@ -32,12 +33,13 @@ def main():
     words = syllables(path.read_text(encoding="utf-8"))
 
     rows = []
-    for prev, word in zip(words, words[1:]):
-        if word in known:
-            keys, kind = mistype(word, rng)
-            rows.append(f"{prev}\t{keys}\t{word}\t{kind}")
+    for i in range(1, len(words)):
+        if words[i] in known:
+            keys, kind = mistype(words[i], rng)
+            context = " ".join(words[max(i - 2, 0) : i])
+            rows.append(f"{context}\t{keys}\t{words[i]}\t{kind}")
     out = path.with_suffix(".tests.tsv")
-    out.write_text("prev\ttyped\twant\tkind\n" + "\n".join(rows) + "\n", encoding="utf-8")
+    out.write_text("context\ttyped\twant\tkind\n" + "\n".join(rows) + "\n", encoding="utf-8")
     skipped = len(words) - 1 - len(rows)
     print(f"{out.name}: {len(rows)} ca test ({skipped} từ bỏ qua vì không có trong danh sách âm tiết)")
 

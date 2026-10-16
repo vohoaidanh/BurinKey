@@ -36,7 +36,7 @@ def main():
     results = {}
     for method in methods:
         t = time.perf_counter()
-        guesses = [[w for w, _ in method.rank(prev, keys)] for prev, keys, _, _ in tests]
+        guesses = [[w for w, _ in method.rank(tuple(c.split()), keys)] for c, keys, _, _ in tests]
         ms = (time.perf_counter() - t) * 1000 / len(tests)
         results[method.name] = (guesses, ms)
 
@@ -71,7 +71,7 @@ def main():
         wrong = [(t, g[0] if g else "") for t, g in zip(tests, guesses) if g[:1] != [t[2]]]
         out = path.with_name(f"{path.stem}.{n}.wrong.tsv")
         out.write_text(
-            "prev\ttyped\twant\tkind\tguess\n" + "".join("\t".join(t) + f"\t{g}\n" for t, g in wrong),
+            "context\ttyped\twant\tkind\tguess\n" + "".join("\t".join(t) + f"\t{g}\n" for t, g in wrong),
             encoding="utf-8",
         )
 

@@ -1,8 +1,8 @@
 """Shows what each method suggests for a few typed words.
 
     python try.py                       # the built-in examples
-    python try.py thao truowfn          # previous word, typed keys
-    python try.py - hock                # no previous word
+    python try.py giao thông cua        # words before, then the typed keys
+    python try.py hock                  # no words before
     python try.py -i                    # type whole sentences in Telex
 """
 
@@ -21,47 +21,46 @@ EXAMPLES = [
     ("đi", "hock", "học"),
     ("đi", "hocjj", "học"),
     ("thành", "phoos", "phố"),
-    ("phố", "haie", "hải"),
+    ("thành phố", "haie", "hải"),
     ("đi", "haie", "hái"),
-    (None, "truongwg", "trường"),
+    ("", "truongwg", "trường"),
+    ("giao thông", "cua", "của"),
+    ("giao thông", "a", "an"),
+    ("đô thị", "taih", "tại"),
 ]
 
 
 def interactive(methods):
-    """Each word of a typed line is corrected, using the previous corrected
-    word as context."""
+    """Each word of a typed line is corrected, using the two words before
+    it (as corrected) as context."""
     print("Gõ một câu bằng phím Telex (vd: ddi hock truognwf), Enter để thoát.")
     while line := input("\n> ").strip().lower():
         for method in methods:
-            prev, out = None, []
+            out = []
             for keys in line.split():
-                ranked = method.rank(prev, keys)
-                prev = ranked[0][0] if ranked else keys
-                out.append(prev)
-            print(f"  {method.name:11} {' '.join(out)}")
+                ranked = method.rank(tuple(out[-2:]), keys)
+                out.append(ranked[0][0] if ranked else keys)
+            print(f"  {method.name:16} {' '.join(out)}")
 
 
 def main():
     model = load()
     methods = load_all(model)
-    if sys.argv[1:] == ["-i"]:
+    args = sys.argv[1:]
+    if args == ["-i"]:
         return interactive(methods)
-    if len(sys.argv) == 3:
-        prev = None if sys.argv[1] == "-" else sys.argv[1]
-        cases = [(prev, sys.argv[2], None)]
-    else:
-        cases = EXAMPLES
-    for prev, keys, want in cases:
-        print(f"\n{prev or '·'} + {keys}" + (f"   (đúng: {want})" if want else ""))
+    cases = [(" ".join(args[:-1]), args[-1], None)] if args else EXAMPLES
+    for context, keys, want in cases:
+        print(f"\n{context or '·'} + {keys}" + (f"   (đúng: {want})" if want else ""))
         for method in methods:
             t = time.perf_counter()
-            ranked = method.rank(prev, keys)
+            ranked = method.rank(tuple(context.split()), keys)
             ms = (time.perf_counter() - t) * 1000
             words = [w for w, _ in ranked]
             mark = ""
             if want:
                 mark = "✓" if words[0] == want else f"✗ (hạng {words.index(want) + 1})" if want in words else "✗ (ngoài top 10)"
-            print(f"  {method.name:11} {mark:18} {', '.join(words[:6])}   [{ms:.0f} ms]")
+            print(f"  {method.name:16} {mark:18} {', '.join(words[:6])}   [{ms:.0f} ms]")
 
 
 if __name__ == "__main__":
